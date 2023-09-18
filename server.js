@@ -4,12 +4,14 @@ const mongoose = require('mongoose');
 const app = express();
 const FormData = require('./models/FormData')
 const cors = require('cors');
+const dotenv  = require("dotenv").config();
 
 
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static('uploads'))
 
 
 
@@ -20,7 +22,7 @@ app.listen(port, () => {
 
 
 
-mongoose.connect(`mongodb+srv://fundi:fundi@cluster1.njzchgp.mongodb.net/rivatexdb?retryWrites=true&w=majority`, {
+mongoose.connect(process.env.STRING, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
@@ -55,8 +57,10 @@ app.post('/upload', uploadMiddleware, async (req, res) => {
         about_rivatex: req.body.about_rivatex,
         entry_reason: req.body.entry_reason,
         prize_question: req.body.prize_question,
-        images: req.files.map(file => `uploads/${file.filename}`)
+        images: req.files.map(file => file.originalname)
       });
+
+    
   
       await formData.save();
   
@@ -72,7 +76,7 @@ app.post('/upload', uploadMiddleware, async (req, res) => {
   app.get('/getFormData', async (req, res) => {
     try {
       const formData = await FormData.find({});
-      res.status(200).json({ formData });
+      res.status(200).json({ formData: formData });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'An error occurred while retrieving data' });
