@@ -90,7 +90,9 @@ app.post('/upload', uploadMiddleware, async (req, res) => {
     //  https
     //   .createServer({key: privateKey, cert: certificate}, app)
     //   .listen(process.env.PORT)
+    console.log("DB COnnected !!")
     app.listen(process.env.PORT)
+    console.log("Server running on port " + process.env.PORT)
    })
    .catch(err => {
       console.log(err)
