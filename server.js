@@ -5,7 +5,12 @@ const app = express();
 const FormData = require('./models/FormData')
 const cors = require('cors');
 const dotenv  = require("dotenv").config();
-
+const helmet = require("helmet")
+const compression = require("compression")
+const morgan = require("morgan")
+const fs = require('fs')
+const path = require('path'); 
+const https = require("https")
 
 
 app.use(cors());
@@ -15,24 +20,19 @@ app.use('/uploads', express.static('uploads'))
 
 
 
-const port = 5000;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+
+
+const privateKey = fs.readFileSync('server.key')
+const certificate = fs.readFileSync('server.cert')
 
 
 
-mongoose.connect(process.env.STRING, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
 
-const db = mongoose.connection;
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), {flags : 'a'});
 
-db.on('error', (error) => console.error('MongoDB connection error:', error));
-db.once('open', () => console.log('Connected to MongoDB'));
-
-
+app.use(helmet())
+app.use(compression())
+app.use(morgan('combined', { stream: accessLogStream}))
 
 app.post('/upload', uploadMiddleware, async (req, res) => {
 
@@ -83,3 +83,15 @@ app.post('/upload', uploadMiddleware, async (req, res) => {
     }
   });
 
+
+  mongoose
+   .connect(process.env.STRING)
+   .then(result => {
+    //  https
+    //   .createServer({key: privateKey, cert: certificate}, app)
+    //   .listen(process.env.PORT)
+    app.listen(process.env.PORT)
+   })
+   .catch(err => {
+      console.log(err)
+   })
